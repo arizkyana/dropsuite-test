@@ -27,6 +27,10 @@ function init($path)
         foreach ($files_in_dir as $index => $file_in_dir) {
 
             $mime_type = mime_content_type($file_in_dir);
+
+            // log process
+            echo "Open file : " . $file_in_dir . " size : " . filesize($file_in_dir) . " bytes" . PHP_EOL;
+
             $lines = "";
             if ($mime_type == 'text/plain') {
                 $lines = readTextFile($file_in_dir);
@@ -102,15 +106,17 @@ function readBinaryFile($file)
 if (PHP_SAPI == 'cli') {
     $path = $argv[1] . "/";
 
-    echo "Loading ...." . PHP_EOL;
+    echo "Starting ...." . PHP_EOL;
 
     $result = init($path);
 
     if (!result) die('Path is unknown');
 
+    echo "==========================================================================================" . PHP_EOL;
+    echo "RESULT" . PHP_EOL;
     echo "Content : " . $result->content_item . PHP_EOL;
     echo "Count : " . $result->count . PHP_EOL;
-
+    echo "==========================================================================================" . PHP_EOL;
     echo "Finish";
 
 }
