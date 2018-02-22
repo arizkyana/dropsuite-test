@@ -3,6 +3,7 @@ Web Developer Test for joining Dropsuite Company
 
 ## Environment
 PHP 7
+RAM > 4 GB
 
 ## How to use
 1. Clone / Download this project
@@ -21,4 +22,3 @@ php dropsuite C:/dir/that/has/files/with/same/content
 ### *NIX
 
 php dropsuite ~/dir/that/has/files/with/same/content
-
