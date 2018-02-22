@@ -1,65 +1,11 @@
 <?php
 
-class BigFile
-{
-    protected $file;
+ini_set("memory_limit", "4096M");
 
-    public function __construct($filename, $mode = "r")
-    {
-        if (!file_exists($filename)) {
-
-            throw new Exception("File not found");
-
-        }
-
-        $this->file = new SplFileObject($filename, $mode);
-    }
-
-    protected function iterateText()
-    {
-        $count = 0;
-
-        while (!$this->file->eof()) {
-
-            yield $this->file->fgets();
-
-            $count++;
-        }
-        return $count;
-    }
-
-    protected function iterateBinary($bytes)
-    {
-        $count = 0;
-
-        while (!$this->file->eof()) {
-
-            yield $this->file->fread($bytes);
-
-            $count++;
-        }
-    }
-
-    public function iterate($type = "Text", $bytes = NULL)
-    {
-        if ($type == "Text") {
-
-            return new NoRewindIterator($this->iterateText());
-
-        } else {
-
-            return new NoRewindIterator($this->iterateBinary($bytes));
-        }
-
-    }
-}
-
-?>
-
-<?php
-
-ini_set("memory_limit", "1G");
-
+/**
+ * @param $path
+ * @return mixed
+ */
 function init($path)
 {
 
@@ -80,25 +26,19 @@ function init($path)
         $group = [];
         foreach ($files_in_dir as $index => $file_in_dir) {
 
-
-            $handleFile = new BigFile($file_in_dir);
-            $iterator = $handleFile->iterate("Text");
+            $mime_type = mime_content_type($file_in_dir);
             $lines = "";
-            foreach($iterator as $line){
-
-                $lines .= $line . PHP_EOL;
+            if ($mime_type == 'text/plain') {
+                $lines = readTextFile($file_in_dir);
+            } else {
+                $lines = readBinaryFile($file_in_dir);
             }
-
-//            echo md5($lines).PHP_EOL;
 
             $file_content = md5($lines);
             $content_of_file = $lines;
             $group[$file_content][] = $content_of_file;
 
         }
-
-
-
 
 
         $result = [];
@@ -122,27 +62,51 @@ function init($path)
 
 
     } else {
-        echo 'Unable to open path : ' . $path;
+        return FALSE;
+
     }
 }
 
-function readTheFile($path)
+/**
+ * @param $file
+ * @return bool|string
+ */
+function readTextFile($file)
 {
-    $handle = fopen($path, "r");
-
+    $lines = "";
+    $handle = fopen($file, "r");
     while (!feof($handle)) {
-        yield trim(fgets($handle));
+        $line = fgets($handle, 80);
+        $lines .= $line . PHP_EOL;
     }
-
     fclose($handle);
+    return $line;
 }
 
+/**
+ * @param $file
+ * @return bool|string
+ */
+function readBinaryFile($file)
+{
+    $handle = fopen($file, "rb");
+    $data = fread($handle, 4096);
+    $lines = $data;
+    fclose($handle);
+    return $lines;
+}
+
+/**
+ * CLI Apps
+ */
 if (PHP_SAPI == 'cli') {
     $path = $argv[1] . "/";
 
     echo "Loading ...." . PHP_EOL;
 
     $result = init($path);
+
+    if (!result) die('Path is unknown');
 
     echo "Content : " . $result->content_item . PHP_EOL;
     echo "Count : " . $result->count . PHP_EOL;
